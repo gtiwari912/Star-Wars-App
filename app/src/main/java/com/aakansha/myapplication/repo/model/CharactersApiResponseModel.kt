@@ -1,17 +1,20 @@
 package com.aakansha.myapplication.repo.model
 
+import com.aakansha.myapplication.repo.localdb.CharacterEntity
+import com.aakansha.myapplication.utils.Utils
 import com.google.gson.annotations.SerializedName
+import java.lang.StringBuilder
 
 data class CharactersApiResponseModel (
 
     @SerializedName("count"    ) var count    : Int?               = null,
     @SerializedName("next"     ) var next     : String?            = null,
     @SerializedName("previous" ) var previous : String?            = null,
-    @SerializedName("results"  ) var results  : ArrayList<Character> = arrayListOf()
+    @SerializedName("results"  ) var results  : ArrayList<StarWarCharacter> = arrayListOf()
 
 )
 
-data class Character (
+data class StarWarCharacter (
 
     @SerializedName("name"       ) var name      : String?           = null,
     @SerializedName("height"     ) var height    : String?           = null,
@@ -28,6 +31,46 @@ data class Character (
     @SerializedName("starships"  ) var starships : ArrayList<String> = arrayListOf(),
     @SerializedName("created"    ) var created   : String?           = null,
     @SerializedName("edited"     ) var edited    : String?           = null,
-    @SerializedName("url"        ) var url       : String?           = null
+    @SerializedName("url"        ) var url       : String?           = null,
+var isVisible:Boolean = true
 
-)
+){
+    fun toCharacterEntity():CharacterEntity{
+        Utils.uid= Utils.uid+1
+        return CharacterEntity(
+            uid = Utils.uid,
+            name = name,
+            height = height,
+            mass = mass,
+            hairColor = hairColor,
+            skinColor = skinColor,
+            eyeColor = eyeColor,
+            birthYear = birthYear,
+            gender = gender,
+            homeworld = homeworld,
+            filmsList = StringBuilder().apply {
+                             films.forEach {
+                                 this.append(it+",")
+                             }
+            }.toString(),
+            speciesList = StringBuilder().apply {
+                species.forEach {
+                    this.append(it+",")
+                }
+            }.toString(),
+            vehiclesList = StringBuilder().apply {
+                vehicles.forEach {
+                    this.append(it+",")
+                }
+            }.toString(),
+            starshipsList = StringBuilder().apply {
+                starships.forEach {
+                    this.append(it+",")
+                }
+            }.toString(),
+            created = created,
+            edited = edited,
+            url = url
+        )
+    }
+}
