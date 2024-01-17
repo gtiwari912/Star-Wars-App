@@ -22,7 +22,14 @@ class StarWarsViewModel : ViewModel(){
         get() = _charactersList
 
     fun getCharacters(context: Context){
-        var pageNumber = -1;
+        if(charactersList.value.isNullOrEmpty()){
+            PrefUtils.setIntPref(context = context, AppPreferences.PAGE_NUMBER, 0)
+            PrefUtils.setBooleanPref(context = context, AppPreferences.REACHED_LAST_PAGE, false)
+        }
+        if(PrefUtils.getBooleanPref(context = context, AppPreferences.REACHED_LAST_PAGE) == true){
+            return
+        }
+        var pageNumber = 0;
         if(!PrefUtils.get(context = context).contains(AppPreferences.PAGE_NUMBER)){
             PrefUtils.setIntPref(context = context, key = AppPreferences.PAGE_NUMBER, pageNumber)
         }
@@ -30,12 +37,17 @@ class StarWarsViewModel : ViewModel(){
         PrefUtils.setIntPref(context = context, key = AppPreferences.PAGE_NUMBER, pageNumber)
         viewModelScope.launch(Dispatchers.IO){
             Log.d("tag912", "Calling for pageno: $pageNumber")
-            val characters = StarWarApi.starWarApiInstance.getCharacters(page = pageNumber).await().results
+            val starWarCharactersApiResponse = StarWarApi.starWarApiInstance.getCharacters(page = pageNumber).await()
+            val characters = starWarCharactersApiResponse.results
+            if(starWarCharactersApiResponse.next == null){
+                Log.d("tag912", "Setting reached last page")
+                PrefUtils.setBooleanPref(context = context, AppPreferences.REACHED_LAST_PAGE, true)
+            }
+            val updatedCharactersList = ArrayList<Character>()
+            _charactersList.value?.forEach { updatedCharactersList.add(it) }
+            characters.forEach { updatedCharactersList.add(it) }
             withContext(Dispatchers.Main){
-                for(character in characters){
-                    Log.d("tag912", "Name: ${character.name}")
-                    _charactersList.value?.add(character)
-                }
+                _charactersList.postValue(updatedCharactersList)
             }
 
         }

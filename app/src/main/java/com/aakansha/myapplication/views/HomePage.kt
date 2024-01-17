@@ -1,5 +1,6 @@
 package com.aakansha.myapplication.views
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,12 +10,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
@@ -40,6 +45,7 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.SemanticsProperties.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,6 +56,8 @@ import com.aakansha.myapplication.repo.model.Character
 import com.aakansha.myapplication.ui.theme.StarWarsYellow
 import com.aakansha.myapplication.ui.theme.SubTitleTextColor
 import com.aakansha.myapplication.ui.theme.TitleTextColor
+import com.aakansha.myapplication.utils.AppPreferences
+import com.aakansha.myapplication.utils.PrefUtils
 import com.aakansha.myapplication.viewmodel.StarWarsViewModel
 
 @Preview
@@ -107,33 +115,69 @@ fun HomePage() {
                 .fillMaxWidth()
         )
 
-        LazyVerticalGrid(
-            modifier = Modifier.padding(horizontal = 40.dp),
-            columns = GridCells.Adaptive(minSize = 150.dp)
+        LazyColumn(
+            modifier = Modifier
+                .padding(horizontal = 40.dp)
+                .padding(bottom = 50.dp),
+//            columns = GridCells.Adaptive(minSize = 150.dp)
         ) {
             if(!characterList.value.isNullOrEmpty()){
-                characterList?.value?.forEachIndexed{ index, it->
-                    item { CharacterCard(it, index = index) }
-
+                var index = 0
+                characterList.value?.forEachIndexed { index, character ->
+                    if(index%2==0){
+                        item {
+                            Row() {
+                                Log.d("tag912", "on index: $index")
+                                CharacterCard(characterList?.value?.get(index)!!, index = index)
+                                if(index+1 < characterList?.value?.size!!){
+                                    CharacterCard(characterList?.value?.get(index+1)!!, index = index+1)
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
+            item {
+                if(PrefUtils.getBooleanPref(context = context,AppPreferences.REACHED_LAST_PAGE)){
+                    Text(
+                        text = "Your Reached End of Page ;)",
+                        fontSize = 12.sp,
+                        color = SubTitleTextColor,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(vertical = 20.dp)
+                            .fillMaxWidth()
+                    )
+                }
+                else{
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, StarWarsYellow, RoundedCornerShape(20.dp))
+                            .padding(horizontal = 50.dp),
+
+                        onClick = {
+                            starWarViewModel.getCharacters(context = context)
+                        }) {
+
+                        Text(
+                            text = "Load More",
+                            fontSize = 18.sp,
+                            color = SubTitleTextColor
+                        )
+
+
+                    }
+                }
+
+            }
+
+
+
+
         }
-        Button(
-            modifier = Modifier
-                .border(1.dp, StarWarsYellow, RoundedCornerShape(20.dp)),
-            onClick = {
-            starWarViewModel.getCharacters(context = context)
-        }) {
 
-            Text(
-                text = "Load More",
-                fontSize = 18.sp,
-                color = SubTitleTextColor
-            )
-
-
-        }
 
     }
 
