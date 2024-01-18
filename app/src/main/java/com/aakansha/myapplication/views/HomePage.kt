@@ -1,6 +1,7 @@
 package com.aakansha.myapplication.views
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -87,7 +88,6 @@ fun HomePage() {
                 painter = painterResource(id = R.drawable.night_background2),
                 contentScale = ContentScale.Crop
             )
-//            .background(Color.Black)
             ,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -157,9 +157,7 @@ fun HomePage() {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 40.dp)
-                .padding(bottom = 50.dp),
-//            columns = GridCells.Adaptive(minSize = 150.dp)
+                .padding(horizontal = 40.dp),
         ) {
             if (!characterList.value.isNullOrEmpty()) {
                 var index = 0
@@ -209,6 +207,9 @@ fun HomePage() {
 
                             onClick = {
                                 searchText.value= ""
+                                if(!Utils.isNetworkAvailable(context)){
+                                    Toast.makeText(context, "No Internet Available", Toast.LENGTH_SHORT).show()
+                                }
                                 starWarViewModel.getCharacters(context = context)
                             })
                         {
@@ -250,7 +251,7 @@ fun CharacterCard(
                 .padding(10.dp)
                 .clip(RoundedCornerShape(10.dp))
 //            .background(Color.Black)
-                .background(darkGradientBrudshes[index % darkGradientBrudshes.size])
+                .background(Utils.darkGradientBrudshes[index % Utils.darkGradientBrudshes.size])
                 .size(150.dp)
                 .padding(10.dp)
                 .clickable {
@@ -310,68 +311,5 @@ fun CharacterCard(
     }
 }
 
-
-val darkGradientBrudshes = arrayListOf(
-
-    // Deep Ocean: Blue to Purple
-    Brush.verticalGradient(
-        colors = listOf(Color(0xFF34495E), Color(0xFF4A148C)),
-        tileMode = TileMode.Clamp
-    ),
-
-    // Midnight Sky: Navy to Black
-    Brush.verticalGradient(
-        colors = listOf(Color(0xFF2C3E50), Color(0xFF000000)),
-        tileMode = TileMode.Clamp
-    ),
-
-    // Dark Forest: Green to Black
-    Brush.verticalGradient(
-        colors = listOf(Color(0xFF22543D), Color(0xFF000000)),
-        tileMode = TileMode.Clamp
-    ),
-
-    // Dusky Moon: Dark Gray to Black
-    Brush.verticalGradient(
-        colors = listOf(Color(0xFF484848), Color(0xFF000000)),
-        tileMode = TileMode.Clamp
-    ),
-
-    // Blood Moon: Deep Red to Black
-    Brush.verticalGradient(
-        colors = listOf(Color(0xFF990000), Color(0xFF000000)),
-        tileMode = TileMode.Clamp
-    ),
-
-    // Cosmic Dusk: Purple to Dark Blue
-    Brush.verticalGradient(
-        colors = listOf(Color(0xFF4A148C), Color(0xFF34495E)),
-        tileMode = TileMode.Clamp
-    ),
-
-    // Nebula Dream: Dark Purple to Violet
-    Brush.verticalGradient(
-        colors = listOf(Color(0xFF4A148C), Color(0xFF5E5CA7)),
-        tileMode = TileMode.Clamp
-    ),
-
-    // Twilight Fog: Dark Gray to Purple
-    Brush.verticalGradient(
-        colors = listOf(Color(0xFF454545), Color(0xFF4A148C)),
-        tileMode = TileMode.Clamp
-    ),
-
-    // Galaxy Glow: Blue to Purple to Pink
-    Brush.verticalGradient(
-        colors = listOf(Color(0xFF34495E), Color(0xFF4A148C), Color(0xFFC51162)),
-        tileMode = TileMode.Clamp
-    ),
-
-    // Aurora Night: Blue to Green to Purple
-    Brush.verticalGradient(
-        colors = listOf(Color(0xFF3498DB), Color(0xFF2ECC71), Color(0xFF9B59B6)),
-        tileMode = TileMode.Clamp
-    )
-)
 
 

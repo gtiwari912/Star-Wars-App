@@ -210,7 +210,7 @@ fun FilmCard(
                 .padding(10.dp)
                 .clip(RoundedCornerShape(10.dp))
 //            .background(Color.Black)
-                .background(darkGradientBrudshes[index % darkGradientBrudshes.size])
+                .background(Utils.darkGradientBrudshes[index % Utils.darkGradientBrudshes.size])
                 .size(150.dp)
                 .padding(10.dp)
         ) {

@@ -7,7 +7,7 @@ import com.aakansha.myapplication.repo.model.StarWarCharacter
 
 @Entity
 data class CharacterEntity(
-    @PrimaryKey val uid: Int,
+    @PrimaryKey val uid: String,
     @ColumnInfo(name = "name") val name: String?,
     @ColumnInfo(name = "height") val height: String?,
     @ColumnInfo(name = "mass") val mass: String?,

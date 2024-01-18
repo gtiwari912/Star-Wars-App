@@ -38,7 +38,7 @@ var isVisible:Boolean = true
     fun toCharacterEntity():CharacterEntity{
         Utils.uid= Utils.uid+1
         return CharacterEntity(
-            uid = Utils.uid,
+            uid = url?:"${Utils.uid}",
             name = name,
             height = height,
             mass = mass,

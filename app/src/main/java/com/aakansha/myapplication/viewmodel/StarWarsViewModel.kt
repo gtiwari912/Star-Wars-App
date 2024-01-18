@@ -1,35 +1,30 @@
 package com.aakansha.myapplication.viewmodel
 
 import android.content.Context
-import android.util.Log
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aakansha.myapplication.repo.StarWarApi
-import com.aakansha.myapplication.repo.localdb.CharacterEntity
 import com.aakansha.myapplication.repo.localdb.StarWarCharacterProvider
-import com.aakansha.myapplication.repo.localdb.StarWarCharactersDb
 import com.aakansha.myapplication.repo.model.Films
 import com.aakansha.myapplication.repo.model.StarWarCharacter
 import com.aakansha.myapplication.utils.AppPreferences
 import com.aakansha.myapplication.utils.PrefUtils
 import com.aakansha.myapplication.utils.Utils
-import kotlinx.coroutines.CoroutineExceptionHandler
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.await
-import java.security.Provider
 
 
 class StarWarsViewModel : ViewModel(){
     private val _charactersList = MutableLiveData<ArrayList<StarWarCharacter>>()
     val charactersList: LiveData<ArrayList<StarWarCharacter>>
         get() = _charactersList
+
 
     private val _characterDetails = MutableLiveData<StarWarCharacter>()
     val characterDetails: LiveData<StarWarCharacter>
@@ -59,7 +54,6 @@ class StarWarsViewModel : ViewModel(){
     }
 
     fun getCharactersFromApi(context: Context){
-        Log.d("tag912", "IN net wala")
         if(charactersList.value.isNullOrEmpty()){
             PrefUtils.setIntPref(context = context, AppPreferences.PAGE_NUMBER, 0)
             PrefUtils.setBooleanPref(context = context, AppPreferences.REACHED_LAST_PAGE, false)
@@ -74,7 +68,6 @@ class StarWarsViewModel : ViewModel(){
         pageNumber = PrefUtils.getIntPref(context = context, AppPreferences.PAGE_NUMBER) +1
         PrefUtils.setIntPref(context = context, key = AppPreferences.PAGE_NUMBER, pageNumber)
         viewModelScope.launch(Dispatchers.IO){
-            Log.d("tag912", "Calling for pageno: $pageNumber")
             val starWarCharactersApiResponse = StarWarApi.starWarApiInstance.getCharacters(page = pageNumber).await()
             val characters = starWarCharactersApiResponse.results
             characters.forEach {
@@ -87,59 +80,37 @@ class StarWarsViewModel : ViewModel(){
             }
 
             if(starWarCharactersApiResponse.next == null){
-                Log.d("tag912", "Setting reached last page")
                 PrefUtils.setBooleanPref(context = context, AppPreferences.REACHED_LAST_PAGE, true)
             }
             val updatedCharactersList = ArrayList<StarWarCharacter>()
             _charactersList.value?.forEach { updatedCharactersList.add(it) }
             characters.forEach { updatedCharactersList.add(it) }
-            withContext(Dispatchers.Main){
-                _charactersList.postValue(updatedCharactersList)
-            }
+            _charactersList.postValue(updatedCharactersList)
+            val gson = Gson()
+            val charactersDataJsonString = gson.toJson(updatedCharactersList)
+            PrefUtils.setStringPref(context = context, key = AppPreferences.CHARACTERS_DATA, charactersDataJsonString)
+
 
         }
     }
 
 
     private fun getCharactersFromLocalDb(context: Context){
-        viewModelScope.launch(Dispatchers.IO) {
-            Log.d("tag912", "in db getter")
+        GlobalScope.launch(Dispatchers.IO ) {
             val charactersEntity = StarWarCharacterProvider.provideCharacterDb(context = context)
                     .starwarcharacterdao()
                     .getAll()
-            Log.d("tag912", "Size: ${charactersEntity.size}")
-            Log.d("tag912", "dbGetter complete")
+            withContext(Dispatchers.Main){
+                val list = ArrayList<StarWarCharacter>()
+                charactersEntity.forEach {
+                    list.add(it.toCharacter())
+                }
+                _charactersList.postValue(list)
+            }
 
         }
     }
 
-    fun getCharactersFromLocalDbb(context: Context){
-        Log.d("tag912","Level 0")
-        val coroutineExceptionHandler = CoroutineExceptionHandler{_, throwable ->
-            throwable.printStackTrace()
-        }
-//        viewModelScope.launch(Dispatchers.Default+ coroutineExceptionHandler) {
-            Log.d("tag912","Level 1")
-//            val starWarCharactersEntity = StarWarCharacterProvider
-//                .provideCharacterDb(context)
-//                .starwarcharacterdao()
-//                .getAll()
-//            Log.d("tag912","Level 2")
-//            val resCharacterList = ArrayList<StarWarCharacter>()
-//            starWarCharactersEntity.forEach{
-//                resCharacterList.add(it.toCharacter())
-//                Log.d("tag912", "Dao: ${it.name}")
-//            }
-            Log.d("tag912","Level 3")
-//            withContext(Dispatchers.Main){
-                Log.d("tag912", "Level 3.5")
-//                _charactersList.postValue(resCharacterList)
-                Log.d("tag912", "Level 4")
-//                _charactersList.value = resCharacterList
-//            }
-//        }
-
-    }
 
     fun getCharacters(context: Context){
         if(Utils.isNetworkAvailable(context = context)){
@@ -197,7 +168,7 @@ class StarWarsViewModel : ViewModel(){
 
     fun reset(context: Context) {
         _charactersList.postValue(ArrayList())
-        getCharacters(context = context)
+        getCharactersFromLocalDb(context = context)
     }
 
 

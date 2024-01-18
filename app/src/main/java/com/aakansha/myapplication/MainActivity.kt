@@ -22,12 +22,6 @@ import retrofit2.await
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        GlobalScope.launch {
-            val characters = StarWarApi.starWarApiInstance.getCharacters(page = 1).await()
-            characters.results.forEach {
-                Log.d("tag912", "${it.name}")
-            }
-        }
         setContent {
             StarWarsAppTheme {
                 // A surface container using the 'background' color from the theme
@@ -35,7 +29,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-//                    Greeting("Android")
                     HomePage()
                 }
             }
